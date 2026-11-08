@@ -7,10 +7,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Lato:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --amethyst: #6a1b9a;
-            --dark-bg: #1a0f1f;
-            --gold: #d4af37;
-            --text: #f5f5f5;
+            --amethyst: #dccbe5;
+            --dark-bg: #eee6f1;
+            --gold: #50375e;
+            --text: #332738;
             --danger: #ff4d4d;
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
@@ -29,21 +29,21 @@
             width: 95vw;
             max-width: 420px;
             height: 94dvh;
-            background: #25162b;
+            background: #faf7f2;
             padding: 12px;
             border-radius: 12px;
             border: 1px solid var(--gold);
             display: flex;
             flex-direction: column;
             position: relative;
-            box-shadow: 0 0 40px rgba(0,0,0,0.9);
+            box-shadow: 0 0 40px rgba(80,55,94,0.15);
         }
         .top-nav {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding-bottom: 8px;
-            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+            border-bottom: 1px solid rgba(80, 55, 94, 0.2);
             flex-shrink: 0;
         }
         .brand { font-family: 'Playfair Display', serif; color: var(--gold); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; }
@@ -77,8 +77,8 @@
         }
         .card {
             aspect-ratio: 1 / 1;
-            background: linear-gradient(145deg, #3a2244, #25162b);
-            border: 1px solid rgba(212, 175, 55, 0.3);
+            background: linear-gradient(145deg, #eee6f1, #faf7f2);
+            border: 1px solid rgba(80, 55, 94, 0.3);
             border-radius: 8px;
             display: flex;
             align-items: center;
@@ -102,10 +102,10 @@
         #grid.smart-orient .card span { transform: rotateY(-180deg) rotateZ(180deg); }
         #grid.full-invert .card span { transform: rotateY(-180deg) rotateZ(0deg); }
         .footer { flex-shrink: 0; padding-top: 10px; text-align: center; }
-        .hint { font-size: 0.6rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px; }
+        .hint { font-size: 0.6rem; color: rgba(80,55,94,0.8); text-transform: uppercase; letter-spacing: 1px; }
         .overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(26, 15, 31, 0.98);
+            background: rgba(250, 247, 242, 0.98);
             display: none; flex-direction: column; align-items: center; justify-content: center;
             z-index: 100; border-radius: 12px; padding: 25px; text-align: center;
         }
@@ -142,7 +142,7 @@
     <div id="overlay" class="overlay">
         <h2 id="overlay-title" style="color:var(--gold); font-family:'Playfair Display';"></h2>
         <p id="overlay-msg" style="margin:12px 0; font-size: 1rem;"></p>
-        <div id="bonus-info" style="color:#4dff88; font-weight:bold; font-size:0.8rem"></div>
+        <div id="bonus-info" style="color:#356344; font-weight:bold; font-size:0.8rem"></div>
         <button id="overlay-btn" class="main-btn" onclick="initAndStart()">Begin</button>
     </div>
 </div>
