@@ -333,7 +333,7 @@
         const [c1, c2] = flippedCards;
         if (c1.dataset.id === c2.dataset.id) {
             matchedPairs++; score += 2;
-            const bonus = Math.min(level, 5);
+            const bonus = level >= 10 ? 7 : Math.min(level, 5);
             levelDuration = Math.min(levelDuration + bonus, 60 + (level * 2));
             if ("vibrate" in navigator) navigator.vibrate(60);
             setTimeout(() => {
