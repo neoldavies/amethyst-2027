@@ -25,17 +25,20 @@ const slides=[...root.querySelectorAll('.review-slide')];
 const controls=root.querySelector('.review-controls');
 const position=root.querySelector('.review-position');
 const pause=root.querySelector('.review-pause');
-let index=0,timer,hovered=false,focused=false;
-let paused=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let index=0,timer,hovered=false,focused=false,touching=false;
+let paused=false;
 function syncPause(){pause.textContent=paused?'Resume reviews':'Pause reviews';pause.setAttribute('aria-pressed',String(paused));}
-function schedule(){clearTimeout(timer);if(!paused&&!hovered&&!focused&&!document.hidden)timer=setTimeout(()=>show(index+1,false),8000);}
+function schedule(){clearTimeout(timer);if(!paused&&!hovered&&!focused&&!touching&&!document.hidden)timer=setTimeout(()=>show(index+1,false),8000);}
 function show(next,manual){index=(next+slides.length)%slides.length;slides.forEach((slide,i)=>{const hidden=i!==index;slide.setAttribute('aria-hidden',String(hidden));slide.inert=hidden;});position.setAttribute('aria-live',manual?'polite':'off');position.textContent=(index+1)+' / '+slides.length;schedule();}
 controls.hidden=false;
 root.querySelectorAll('[data-review-step]').forEach(button=>button.addEventListener('click',()=>show(index+Number(button.dataset.reviewStep),true)));
-pause.addEventListener('click',()=>{paused=!paused;syncPause();schedule();});
+pause.addEventListener('click',()=>{paused=!paused;if(!paused){focused=false;hovered=false;touching=false;}syncPause();schedule();});
 root.addEventListener('pointerenter',event=>{if(event.pointerType==='mouse'){hovered=true;schedule();}});
 root.addEventListener('pointerleave',()=>{hovered=false;schedule();});
-root.addEventListener('pointerdown',event=>{if(event.pointerType==='touch'&&!event.target.closest('.review-controls')){paused=true;syncPause();schedule();}});
+root.addEventListener('pointerdown',event=>{if(event.pointerType==='touch'){touching=true;schedule();}});
+function releaseTouch(event){if(event.pointerType==='touch'){touching=false;schedule();}}
+document.addEventListener('pointerup',releaseTouch);
+document.addEventListener('pointercancel',releaseTouch);
 root.addEventListener('focusin',()=>{focused=true;schedule();});
 root.addEventListener('focusout',event=>{if(!root.contains(event.relatedTarget)){focused=false;schedule();}});
 document.addEventListener('visibilitychange',schedule);
