@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amethyst Glow</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --amethyst: #6a1b9a;
+            --dark-bg: #1a0f1f;
+            --gold: #d4af37;
+            --text: #f5f5f5;
+            --danger: #ff4d4d;
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+        body {
+            font-family: 'Lato', sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100dvh;
+            width: 100vw;
+            overflow: hidden;
+        }
+        #game-container {
+            width: 95vw;
+            max-width: 420px;
+            height: 94dvh;
+            background: #25162b;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid var(--gold);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 0 40px rgba(0,0,0,0.9);
+        }
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+            flex-shrink: 0;
+        }
+        .brand { font-family: 'Playfair Display', serif; color: var(--gold); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; }
+        .utility-btns { display: flex; gap: 12px; }
+        .icon-btn { background: none; border: none; color: var(--gold); cursor: pointer; font-size: 1.1rem; }
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            font-size: 0.75rem;
+            color: var(--gold);
+            font-weight: bold;
+        }
+        #grid-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 0;
+            width: 100%;
+            perspective: 1200px;
+        }
+        #grid {
+            display: grid;
+            gap: 10px;
+            width: 100%;
+            max-width: 350px;
+            margin: auto;
+            transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+        .card {
+            aspect-ratio: 1 / 1;
+            background: linear-gradient(145deg, #3a2244, #25162b);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: transform 0.5s, background 0.3s, opacity 0.4s;
+            position: relative;
+        }
+        .card span {
+            display: none; font-size: 2rem;
+            pointer-events: none;
+            transition: transform 0.7s;
+        }
+        .text-card span { font-size: 0.65rem; font-weight: 700; padding: 2px; text-transform: uppercase; }
+        .card.flipped { background: var(--amethyst); border-color: var(--gold); transform: rotateY(180deg); }
+        .card.flipped span { display: block; transform: rotateY(-180deg); }
+        .card.matched { opacity: 0; pointer-events: none; transform: scale(0.5); }
+        /* ROTATION MODES */
+        #grid.is-flipped { transform: rotateZ(180deg); }
+        #grid.smart-orient .card span { transform: rotateY(-180deg) rotateZ(180deg); }
+        #grid.full-invert .card span { transform: rotateY(-180deg) rotateZ(0deg); }
+        .footer { flex-shrink: 0; padding-top: 10px; text-align: center; }
+        .hint { font-size: 0.6rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px; }
+        .overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(26, 15, 31, 0.98);
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 100; border-radius: 12px; padding: 25px; text-align: center;
+        }
+        .main-btn {
+            background: transparent; color: var(--gold); border: 1px solid var(--gold);
+            padding: 14px 35px; font-family: 'Playfair Display', serif;
+            font-size: 1.1rem; cursor: pointer; border-radius: 4px; margin-top: 20px;
+        }
+        #timer.timer-warning { color: var(--danger); font-weight: 900; }
+        body.high-contrast .card.flipped { background: #fff !important; color: #000 !important; }
+    </style>
+<style>.brand{text-decoration:none}.icon-btn:focus-visible,.card:focus-visible{outline:2px solid var(--gold);outline-offset:3px}@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}</style></head>
+<body>
+<div id="game-container">
+    <div class="top-nav">
+        <div style="font-size: 0.7rem; color: var(--gold)">SCORE: <span id="score-val">0</span></div>
+        <a class="brand" href="index.html" aria-label="Return to Amethyst Nails and Beauty">Amethyst Glow</a>
+        <div class="utility-btns">
+            <button class="icon-btn" onclick="toggleA11y()" title="Accessibility Mode">👁️</button>
+            <button id="btn-mute" class="icon-btn" onclick="toggleMute()" title="Toggle Sound">🔊</button>
+            <button class="icon-btn" onclick="togglePause()" title="Pause Game">⏸️</button>
+        </div>
+    </div>
+    <div class="stats-bar">
+        <div>LEVEL <span id="level-val">1</span></div>
+        <div>TIME: <span id="timer">0.0</span>S</div>
+    </div>
+    <div id="grid-container">
+        <div id="grid"></div>
+    </div>
+    <div class="footer">
+        <p class="hint" id="level-hint"></p>
+    </div>
+    <div id="overlay" class="overlay">
+        <h2 id="overlay-title" style="color:var(--gold); font-family:'Playfair Display';"></h2>
+        <p id="overlay-msg" style="margin:12px 0; font-size: 1rem;"></p>
+        <div id="bonus-info" style="color:#4dff88; font-weight:bold; font-size:0.8rem"></div>
+        <button id="overlay-btn" class="main-btn" onclick="initAndStart()">Begin</button>
+    </div>
+</div>
+<script>
+    const beautyData = [
+        {e: '✨', t: 'GLOW'}, {e: '💎', t: 'GEMS'}, {e: '💄', t: 'LIPS'},
+        {e: '🧴', t: 'LOTION'}, {e: '🧖‍♀️', t: 'SPA'}, {e: '✂️', t: 'CUT'},
+        {e: '💅', t: 'NAILS'}, {e: '💆‍♀️', t: 'RELAX'}, {e: '🎨', t: 'ART'}, {e: '🪞', t: 'MIRROR'}
+    ];
+    let level = 1, score = 0, timeLeft = 0, timerInterval, audioCtx = null;
+    let startTime, levelDuration;
+    let flippedCards = [], matchedPairs = 0, totalPairs = 0, isProcessing = false, isPaused = false;
+    let seen = new Set(), errors = 0, isBoardRotated = false;
+    let isMuted = false, isA11y = false;
+    let currentRoundType = "icon";
+    window.onload = () => {
+        const saved = JSON.parse(localStorage.getItem('amethyst_glow_vTechnical_Fixed'));
+        if (saved) { level = saved.level || 1; score = saved.score || 0; isMuted = saved.muted || false; isA11y = saved.a11y || false; }
+        document.getElementById('score-val').innerText = score;
+        updateMuteUI();
+        if(isA11y) document.body.classList.add('high-contrast');
+        showOverlay("Amethyst Glow", "Focus your mind, reveal your radiance.", `Begin Level ${level}`);
+    };
+    function save() { localStorage.setItem('amethyst_glow_vTechnical_Fixed', JSON.stringify({level, score, muted: isMuted, a11y: isA11y})); }
+    function toggleA11y() {
+        isA11y = !isA11y;
+        document.body.classList.toggle('high-contrast', isA11y);
+        save();
+
+        const cards = document.querySelectorAll('.card');
+        cards.forEach(card => {
+            const id = card.dataset.id;
+            const dataObj = beautyData.find(d => d.e === id);
+            if (dataObj) {
+                const span = card.querySelector('span');
+                if (isA11y) {
+                    span.innerText = dataObj.t;
+                    card.classList.add('text-card');
+                } else {
+                    if (currentRoundType === "text") {
+                        span.innerText = dataObj.t;
+                    } else if (currentRoundType === "icon") {
+                        span.innerText = dataObj.e;
+                        card.classList.remove('text-card');
+                    } else if (currentRoundType === "hybrid") {
+                        const wasText = card.getAttribute('data-was-text') === 'true';
+                        span.innerText = wasText ? dataObj.t : dataObj.e;
+                        if (!wasText) card.classList.remove('text-card');
+                    }
+                }
+            }
+        });
+    }
+    function toggleMute() { isMuted = !isMuted; updateMuteUI(); save(); }
+    function updateMuteUI() { document.getElementById('btn-mute').innerText = isMuted ? '🔇' : '🔊'; }
+    function showOverlay(title, msg, btnText) {
+        document.getElementById('overlay-title').innerText = title;
+        document.getElementById('overlay-msg').innerText = msg;
+        document.getElementById('overlay-btn').innerText = btnText;
+        document.getElementById('overlay').style.display = 'flex';
+    }
+    function togglePause() {
+        if (timeLeft <= 0 || matchedPairs === totalPairs) return;
+        isPaused = !isPaused;
+        const grid = document.getElementById('grid');
+        if (isPaused) {
+            clearInterval(timerInterval);
+            grid.style.visibility = 'hidden';
+            showOverlay("Paused", "Your progress is safe.", "Resume");
+            document.getElementById('overlay-btn').onclick = togglePause;
+        } else {
+            grid.style.visibility = 'visible';
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('overlay-btn').onclick = initAndStart;
+            startTime = Date.now() - (levelDuration - timeLeft) * 1000;
+            runTimer();
+        }
+    }
+    function playSound(type) {
+        if (isMuted) return;
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain); gain.connect(audioCtx.destination);
+
+        if (type === 'thump') {
+            osc.frequency.setValueAtTime(140, now); osc.frequency.exponentialRampToValueAtTime(0.01, now + 0.1);
+            gain.gain.setValueAtTime(0.1, now); osc.start(); osc.stop(now + 0.1);
+        } else if (type === 'win') {
+            osc.frequency.setValueAtTime(523, now); osc.frequency.exponentialRampToValueAtTime(1046, now + 0.3);
+            gain.gain.setValueAtTime(0.1, now); osc.start(); osc.stop(now + 0.4);
+        } else if (type === 'lose') {
+            osc.type = 'sawtooth'; osc.frequency.setValueAtTime(100, now);
+            gain.gain.setValueAtTime(0.1, now); osc.start(); osc.stop(now + 0.5);
+        }
+    }
+    function initAndStart() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        startLevel();
+    }
+    function startLevel() {
+        document.getElementById('overlay').style.display = 'none';
+        isPaused = false; matchedPairs = 0; flippedCards = []; seen.clear(); errors = 0; isBoardRotated = false;
+
+        const grid = document.getElementById('grid');
+        grid.style.transition = 'none';
+        grid.className = '';
+        grid.style.transform = 'rotateZ(0deg)';
+        void grid.offsetWidth;
+        grid.style.transition = 'transform 0.7s cubic-bezier(0.4, 0, 0.2, 1)';
+
+        levelDuration = (10 + (level - 1) * 5) * 1.05;
+        timeLeft = levelDuration;
+        startTime = Date.now();
+
+        document.getElementById('level-val').innerText = level;
+        document.getElementById('score-val').innerText = score;
+
+        initGrid();
+        runTimer();
+    }
+    function initGrid() {
+        const grid = document.getElementById('grid');
+        grid.innerHTML = '';
+        grid.style.visibility = 'visible';
+        totalPairs = Math.min(2 + (level - 1), 10);
+        let cols = (level < 3) ? 2 : (level < 6 ? 3 : 4);
+        grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+        currentRoundType = "icon";
+        if (level >= 5 && level < 10) currentRoundType = Math.random() > 0.5 ? "text" : "icon";
+        else if (level >= 10) currentRoundType = "hybrid";
+
+        let logicType = isA11y ? "text" : currentRoundType;
+        let currentSet = beautyData.slice(0, totalPairs);
+        let cards = [];
+        currentSet.forEach(item => {
+            if (logicType === "hybrid") {
+                cards.push({ id: item.e, val: item.e, isText: false }, { id: item.e, val: item.t, isText: true });
+            } else if (logicType === "text") {
+                cards.push({ id: item.e, val: item.t, isText: true }, { id: item.e, val: item.t, isText: true });
+            } else {
+                cards.push({ id: item.e, val: item.e, isText: false }, { id: item.e, val: item.e, isText: false });
+            }
+        });
+        cards.sort(() => Math.random() - 0.5).forEach(c => {
+            const card = document.createElement('div');
+            card.className = 'card' + (c.isText ? ' text-card' : '');
+            card.dataset.id = c.id;
+            card.setAttribute('data-was-text', c.isText);
+            card.innerHTML = `<span>${c.val}</span>`;
+            card.onclick = () => handleCardClick(card);
+            grid.appendChild(card);
+        });
+        document.getElementById('level-hint').innerText = `${logicType.toUpperCase()} MODE ${level >= 4 ? '| ROTATION ON' : ''}`;
+    }
+    function runTimer() {
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            const elapsed = (Date.now() - startTime) / 1000;
+            const previousTime = timeLeft;
+            timeLeft = Math.max(0, levelDuration - elapsed);
+            if (timeLeft <= 3 && timeLeft > 0 && Math.floor(timeLeft) !== Math.floor(previousTime)) {
+                playSound('thump');
+            }
+            updateUI();
+            if (timeLeft <= 0) {
+                playSound('lose');
+                gameOver();
+            }
+        }, 50);
+    }
+    function updateUI() {
+        const el = document.getElementById('timer');
+        el.innerText = timeLeft.toFixed(1);
+        el.classList.toggle('timer-warning', (timeLeft <= 5 && timeLeft > 0));
+    }
+    function handleCardClick(card) {
+        if (isProcessing || isPaused || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+        card.classList.add('flipped');
+        flippedCards.push(card);
+        if (flippedCards.length === 2) checkMatch();
+    }
+    function checkMatch() {
+        isProcessing = true;
+        const [c1, c2] = flippedCards;
+        if (c1.dataset.id === c2.dataset.id) {
+            matchedPairs++; score += 2;
+            const bonus = Math.min(level, 5);
+            levelDuration = Math.min(levelDuration + bonus, 60 + (level * 2));
+            if ("vibrate" in navigator) navigator.vibrate(60);
+            setTimeout(() => {
+                c1.classList.add('matched'); c2.classList.add('matched');
+                if (level >= 4) {
+                    isBoardRotated = !isBoardRotated;
+                    const g = document.getElementById('grid');
+                    if (isBoardRotated) g.classList.add('is-flipped');
+                    else g.classList.remove('is-flipped');
+                    if (level >= 4 && level <= 7) {
+                        g.classList.add('smart-orient');
+                        g.classList.remove('full-invert');
+                    } else if (level >= 8) {
+                        g.classList.remove('smart-orient');
+                        g.classList.add('full-invert');
+                    }
+                }
+                flippedCards = []; isProcessing = false;
+                if (matchedPairs === totalPairs) triggerWin();
+            }, 500);
+        } else {
+            if (seen.has(c1.dataset.id) || seen.has(c2.dataset.id)) {
+                errors++; score = Math.max(0, score - 1);
+                if (level >= 5) levelDuration -= 1;
+                if ("vibrate" in navigator) navigator.vibrate([40, 30, 40]);
+            }
+            seen.add(c1.dataset.id); seen.add(c2.dataset.id);
+            setTimeout(() => { c1.classList.remove('flipped'); c2.classList.remove('flipped'); flippedCards = []; isProcessing = false; }, 800);
+        }
+        document.getElementById('score-val').innerText = score;
+    }
+    function triggerWin() {
+        clearInterval(timerInterval);
+        let bonus = (errors === 0) ? 30 : 10;
+        score += bonus; level++; save(); playSound('win');
+        setTimeout(() => {
+            document.getElementById('bonus-info').innerText = (errors === 0) ? "FLAWLESS RADIANCE! +30" : "+10 Points";
+            showOverlay("Radiant Finish!", `Score: ${score}`, `Begin Level ${level}`);
+            document.getElementById('overlay-btn').onclick = initAndStart;
+        }, 1000);
+    }
+    function gameOver() {
+        clearInterval(timerInterval);
+        showOverlay("Time Expired", "Even beauty needs a refresh.", "Restart Game");
+        document.getElementById('overlay-btn').onclick = () => { level = 1; score = 0; save(); startLevel(); };
+    }
+</script>
+</body>
+</html>
+
