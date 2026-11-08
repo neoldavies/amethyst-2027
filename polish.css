@@ -12,3 +12,6 @@
 
 /* Voucher example follows the printed cheque-format design. */
 .gift-card.voucher-cheque{padding:0;aspect-ratio:2.25;background:transparent;color:#50375e;display:block;width:100%;max-width:520px;border-radius:0;box-shadow:12px 14px 0 #b39bbf24;transform:rotate(-3deg)}.gift-card.voucher-cheque:after{display:none}.voucher-cheque svg{display:block;width:100%;height:auto}.voucher-serif{font-family:var(--serif)}.voucher-sans{font-family:var(--sans)}@media(max-width:600px){.gift-card.voucher-cheque{padding:0;aspect-ratio:2.25;width:100%;max-width:435px;margin:0 auto;box-shadow:8px 10px 0 #b39bbf24}}
+
+/* Find-us map and voucher access across the site. */
+.salon-map{border:1px solid #6a536f;border-radius:4px;overflow:hidden;margin:0 0 40px;background:#eee6f1;line-height:0}.salon-map iframe{display:block;width:100%;height:320px;border:0}.desktop-nav{gap:22px}@media(max-width:1120px){.desktop-nav{gap:16px}}@media(max-width:600px){.salon-map{margin-bottom:30px}.salon-map iframe{height:280px}}
