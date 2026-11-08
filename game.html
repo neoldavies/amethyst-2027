@@ -159,14 +159,17 @@
     let isMuted = false, isA11y = false;
     let currentRoundType = "icon";
     window.onload = () => {
-        const saved = JSON.parse(localStorage.getItem('amethyst_glow_vTechnical_Fixed'));
+        let saved = null;
+        try { saved = JSON.parse(localStorage.getItem('amethyst_glow_vTechnical_Fixed')); } catch (e) {}
         if (saved) { level = saved.level || 1; score = saved.score || 0; isMuted = saved.muted || false; isA11y = saved.a11y || false; }
         document.getElementById('score-val').innerText = score;
         updateMuteUI();
         if(isA11y) document.body.classList.add('high-contrast');
         showOverlay("Amethyst Glow", "Focus your mind, reveal your radiance.", `Begin Level ${level}`);
     };
-    function save() { localStorage.setItem('amethyst_glow_vTechnical_Fixed', JSON.stringify({level, score, muted: isMuted, a11y: isA11y})); }
+    function save() {
+        try { localStorage.setItem('amethyst_glow_vTechnical_Fixed', JSON.stringify({level, score, muted: isMuted, a11y: isA11y})); } catch (e) {}
+    }
     function toggleA11y() {
         isA11y = !isA11y;
         document.body.classList.toggle('high-contrast', isA11y);
@@ -333,6 +336,7 @@
         const [c1, c2] = flippedCards;
         if (c1.dataset.id === c2.dataset.id) {
             matchedPairs++; score += 2;
+            if (matchedPairs === totalPairs) clearInterval(timerInterval);
             const bonus = level >= 10 ? 7 : Math.min(level, 5);
             levelDuration = Math.min(levelDuration + bonus, 60 + (level * 2));
             if ("vibrate" in navigator) navigator.vibrate(60);
