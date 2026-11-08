@@ -158,6 +158,7 @@
     let seen = new Set(), errors = 0, isBoardRotated = false;
     let isMuted = false, isA11y = false;
     let currentRoundType = "icon";
+    let runId = 0;
     window.onload = () => {
         let saved = null;
         try { saved = JSON.parse(localStorage.getItem('amethyst_glow_vTechnical_Fixed')); } catch (e) {}
@@ -199,9 +200,11 @@
             }
         });
     }
+    document.addEventListener('visibilitychange', () => { if (document.hidden && !isPaused) togglePause(); });
     function toggleMute() { isMuted = !isMuted; updateMuteUI(); save(); }
     function updateMuteUI() { document.getElementById('btn-mute').innerText = isMuted ? '🔇' : '🔊'; }
     function showOverlay(title, msg, btnText) {
+        document.getElementById('bonus-info').innerText = '';
         document.getElementById('overlay-title').innerText = title;
         document.getElementById('overlay-msg').innerText = msg;
         document.getElementById('overlay-btn').innerText = btnText;
@@ -251,16 +254,17 @@
     }
     function startLevel() {
         document.getElementById('overlay').style.display = 'none';
+        runId++; isProcessing = false;
         isPaused = false; matchedPairs = 0; flippedCards = []; seen.clear(); errors = 0; isBoardRotated = false;
 
         const grid = document.getElementById('grid');
         grid.style.transition = 'none';
         grid.className = '';
-        grid.style.transform = 'rotateZ(0deg)';
         void grid.offsetWidth;
         grid.style.transition = 'transform 0.7s cubic-bezier(0.4, 0, 0.2, 1)';
 
-        levelDuration = (10 + (level - 1) * 5) * 1.05;
+        const base = 10 + (Math.min(level, 9) - 1) * 5;
+        levelDuration = Math.max(30, base - Math.max(0, level - 9) * 2) * 1.05;
         timeLeft = levelDuration;
         startTime = Date.now();
 
@@ -288,7 +292,7 @@
             if (logicType === "hybrid") {
                 cards.push({ id: item.e, val: item.e, isText: false }, { id: item.e, val: item.t, isText: true });
             } else if (logicType === "text") {
-                cards.push({ id: item.e, val: item.t, isText: true }, { id: item.e, val: item.t, isText: true });
+                cards.push({ id: item.e, val: item.t, isText: true, was: false }, { id: item.e, val: item.t, isText: true, was: true });
             } else {
                 cards.push({ id: item.e, val: item.e, isText: false }, { id: item.e, val: item.e, isText: false });
             }
@@ -297,7 +301,7 @@
             const card = document.createElement('div');
             card.className = 'card' + (c.isText ? ' text-card' : '');
             card.dataset.id = c.id;
-            card.setAttribute('data-was-text', c.isText);
+            card.setAttribute('data-was-text', c.was ?? c.isText);
             card.innerHTML = `<span>${c.val}</span>`;
             card.onclick = () => handleCardClick(card);
             grid.appendChild(card);
@@ -333,27 +337,25 @@
     }
     function checkMatch() {
         isProcessing = true;
+        const run = runId;
         const [c1, c2] = flippedCards;
         if (c1.dataset.id === c2.dataset.id) {
             matchedPairs++; score += 2;
             if (matchedPairs === totalPairs) clearInterval(timerInterval);
             const bonus = level >= 10 ? 7 : Math.min(level, 5);
-            levelDuration = Math.min(levelDuration + bonus, 60 + (level * 2));
+            const remaining = Math.max(0, levelDuration - (Date.now() - startTime) / 1000);
+            const capped = Math.max(remaining, Math.min(remaining + bonus, 60 + level * 2));
+            levelDuration += capped - remaining;
             if ("vibrate" in navigator) navigator.vibrate(60);
             setTimeout(() => {
+                if (run !== runId) return;
                 c1.classList.add('matched'); c2.classList.add('matched');
                 if (level >= 4) {
                     isBoardRotated = !isBoardRotated;
                     const g = document.getElementById('grid');
-                    if (isBoardRotated) g.classList.add('is-flipped');
-                    else g.classList.remove('is-flipped');
-                    if (level >= 4 && level <= 7) {
-                        g.classList.add('smart-orient');
-                        g.classList.remove('full-invert');
-                    } else if (level >= 8) {
-                        g.classList.remove('smart-orient');
-                        g.classList.add('full-invert');
-                    }
+                    g.classList.toggle('is-flipped', isBoardRotated);
+                    g.classList.toggle('smart-orient', isBoardRotated && level <= 7);
+                    g.classList.toggle('full-invert', level >= 8);
                 }
                 flippedCards = []; isProcessing = false;
                 if (matchedPairs === totalPairs) triggerWin();
@@ -365,7 +367,7 @@
                 if ("vibrate" in navigator) navigator.vibrate([40, 30, 40]);
             }
             seen.add(c1.dataset.id); seen.add(c2.dataset.id);
-            setTimeout(() => { c1.classList.remove('flipped'); c2.classList.remove('flipped'); flippedCards = []; isProcessing = false; }, 800);
+            setTimeout(() => { if (run !== runId) return; c1.classList.remove('flipped'); c2.classList.remove('flipped'); flippedCards = []; isProcessing = false; }, 800);
         }
         document.getElementById('score-val').innerText = score;
     }
@@ -374,8 +376,8 @@
         let bonus = (errors === 0) ? 30 : 10;
         score += bonus; level++; save(); playSound('win');
         setTimeout(() => {
-            document.getElementById('bonus-info').innerText = (errors === 0) ? "FLAWLESS RADIANCE! +30" : "+10 Points";
             showOverlay("Radiant Finish!", `Score: ${score}`, `Begin Level ${level}`);
+            document.getElementById('bonus-info').innerText = (errors === 0) ? "FLAWLESS RADIANCE! +30" : "+10 Points";
             document.getElementById('overlay-btn').onclick = initAndStart;
         }, 1000);
     }
