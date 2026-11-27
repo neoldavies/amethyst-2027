@@ -17,3 +17,5 @@
 .salon-map{border:1px solid #6a536f;border-radius:4px;overflow:hidden;margin:0 0 40px;background:#eee6f1;line-height:0}.salon-map iframe{display:block;width:100%;height:320px;border:0}.desktop-nav{gap:22px}@media(max-width:1120px){.desktop-nav{gap:16px}}@media(max-width:600px){.salon-map{margin-bottom:30px}.salon-map iframe{height:280px}}
 
 h1 em,h2 em{font-style:normal}
+
+.gallery-image[src$="look-gel.jpg"],.gallery-image[src$="look-chrome.jpg"]{object-position:bottom}
