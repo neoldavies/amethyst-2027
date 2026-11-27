@@ -24,3 +24,5 @@ h1 em,h2 em{font-style:normal}
 .image-caption .sep{font-style:normal}
 @media (max-width:600px){.image-caption .sep{display:none}}
 @media (max-width:360px){.wordmark small{white-space:nowrap;letter-spacing:1.5px}}
+.theme-button .sun,html.dark .theme-button .moon{display:none}
+html.dark .theme-button .sun{display:block}
